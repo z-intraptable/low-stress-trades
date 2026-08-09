@@ -60,7 +60,7 @@ const tradeUpdateSchema = z.object({
 
 export const updateTrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => tradeUpdateSchema.parse(data))
+  .validator((data) => tradeUpdateSchema.parse(data))
   .handler(async ({ context, data }): Promise<Trade> => {
     const { id, ...payload } = data;
     const { data: result, error } = await context.supabase
