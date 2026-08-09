@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { createChart, type IChartApi, type ISeriesApi, type CandlestickData, type LineStyle } from "lightweight-charts";
+import {
+  createChart,
+  CandlestickSeries,
+  LineSeries,
+  type IChartApi,
+  type ISeriesApi,
+  type CandlestickData,
+  type LineStyleOptions,
+} from "lightweight-charts";
 import type { QceSignal } from "@/lib/lst-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -29,6 +37,7 @@ export function PriceChart({ signal }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const overlayRefs = useRef<ISeriesApi<"Line">[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -54,7 +63,7 @@ export function PriceChart({ signal }: PriceChartProps) {
       autoSize: true,
     });
 
-    const series = chart.addCandlestickSeries({
+    const series = chart.addSeries(CandlestickSeries, {
       upColor: "#B8E986",
       downColor: "#FF8A80",
       borderUpColor: "#B8E986",
@@ -70,12 +79,17 @@ export function PriceChart({ signal }: PriceChartProps) {
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      overlayRefs.current = [];
     };
   }, []);
 
   useEffect(() => {
     const series = seriesRef.current;
     if (!series) return;
+
+    // remove previous overlays
+    overlayRefs.current.forEach((s) => chartRef.current?.removeSeries(s));
+    overlayRefs.current = [];
 
     setError(null);
     setLoaded(false);
@@ -92,38 +106,44 @@ export function PriceChart({ signal }: PriceChartProps) {
         if (signal) {
           const last = data[data.length - 1];
           if (last) {
-            const entryLine = chartRef.current?.addLineSeries({
-              color: "#22D3EE",
-              lineStyle: 2 as LineStyle,
+            const nextTime = (Number(last.time) + 60 * 5) as unknown as string;
+            const baseOptions: Partial<LineStyleOptions> = {
+              lineStyle: 2,
               lineWidth: 2,
+            };
+
+            const entryLine = chartRef.current?.addSeries(LineSeries, {
+              ...baseOptions,
+              color: "#22D3EE",
               title: "Entry",
             });
             entryLine?.setData([
               { time: last.time, value: signal.entry },
-              { time: (last.time as unknown as number) + 60 * 5 as unknown as string, value: signal.entry },
+              { time: nextTime, value: signal.entry },
             ]);
+            if (entryLine) overlayRefs.current.push(entryLine);
 
-            const slLine = chartRef.current?.addLineSeries({
+            const slLine = chartRef.current?.addSeries(LineSeries, {
+              ...baseOptions,
               color: "#FF8A80",
-              lineStyle: 2 as LineStyle,
-              lineWidth: 2,
               title: "SL",
             });
             slLine?.setData([
               { time: last.time, value: signal.sl },
-              { time: (last.time as unknown as number) + 60 * 5 as unknown as string, value: signal.sl },
+              { time: nextTime, value: signal.sl },
             ]);
+            if (slLine) overlayRefs.current.push(slLine);
 
-            const tpLine = chartRef.current?.addLineSeries({
+            const tpLine = chartRef.current?.addSeries(LineSeries, {
+              ...baseOptions,
               color: "#B8E986",
-              lineStyle: 2 as LineStyle,
-              lineWidth: 2,
               title: "TP1",
             });
             tpLine?.setData([
               { time: last.time, value: signal.tp1 },
-              { time: (last.time as unknown as number) + 60 * 5 as unknown as string, value: signal.tp1 },
+              { time: nextTime, value: signal.tp1 },
             ]);
+            if (tpLine) overlayRefs.current.push(tpLine);
           }
         }
       })
