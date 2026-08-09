@@ -29,6 +29,7 @@ function DashboardPage() {
     refetchInterval: 5000,
   });
 
+
   const [liveSignal, setLiveSignal] = useState<QceSignal | null>(null);
 
   useEffect(() => {
