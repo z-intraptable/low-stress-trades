@@ -91,6 +91,15 @@ function DashboardPage() {
 
   const latest = liveSignal ?? signals[0];
 
+  const fetchOrderbook = useServerFn(getOrderbookHeatmap);
+  const activeSymbol = latest?.symbol ?? "";
+  const { data: orderbookData } = useQuery({
+    queryKey: ["orderbook", activeSymbol],
+    queryFn: () => fetchOrderbook({ data: { symbol: activeSymbol } }),
+    enabled: activeSymbol.length > 0,
+    refetchInterval: 5000,
+  });
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border px-6 py-4">
