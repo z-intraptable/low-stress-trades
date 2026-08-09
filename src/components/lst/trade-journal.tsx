@@ -8,7 +8,7 @@ import type { Trade } from "@/lib/lst-types";
 import { updateTrade, deleteTrade } from "@/lib/trades.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { formatCurrency, formatNumber } from "@/lib/trading-math";
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/trading-math";
 
 interface TradeJournalProps {
   trades: Trade[];
