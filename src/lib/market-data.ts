@@ -49,11 +49,13 @@ function wilderSmooth(values: number[], period: number): number[] {
   const result: number[] = [];
   let sum = 0;
   for (let i = 0; i < values.length; i++) {
-    sum += values[i];
+    const value = values[i] ?? 0;
+    sum += value;
     if (i === period - 1) {
       result.push(sum / period);
     } else if (i >= period) {
-      result.push((result[result.length - 1] * (period - 1) + values[i]) / period);
+      const prevSmooth = result[result.length - 1] ?? 0;
+      result.push((prevSmooth * (period - 1) + value) / period);
     }
   }
   return result;
@@ -65,6 +67,7 @@ export function computeATR(candles: Candle[], period = 14): number {
   for (let i = 1; i < candles.length; i++) {
     const prev = candles[i - 1];
     const curr = candles[i];
+    if (!prev || !curr) continue;
     const tr = Math.max(
       curr.high - curr.low,
       Math.abs(curr.high - prev.close),
@@ -85,6 +88,7 @@ export function computeADX(candles: Candle[], period = 14): number {
   for (let i = 1; i < candles.length; i++) {
     const prev = candles[i - 1];
     const curr = candles[i];
+    if (!prev || !curr) continue;
     const upMove = curr.high - prev.high;
     const downMove = prev.low - curr.low;
     plusDM.push(upMove > downMove && upMove > 0 ? upMove : 0);
@@ -99,17 +103,21 @@ export function computeADX(candles: Candle[], period = 14): number {
   }
 
   const atr = wilderSmooth(trs, period);
-  const plusDI = wilderSmooth(plusDM, period).map((v, i) =>
-    atr[i] ? (v / atr[i]) * 100 : 0
-  );
-  const minusDI = wilderSmooth(minusDM, period).map((v, i) =>
-    atr[i] ? (v / atr[i]) * 100 : 0
-  );
+  const plusDI = wilderSmooth(plusDM, period).map((v, i) => {
+    const atrValue = atr[i] ?? 0;
+    return atrValue ? (v / atrValue) * 100 : 0;
+  });
+  const minusDI = wilderSmooth(minusDM, period).map((v, i) => {
+    const atrValue = atr[i] ?? 0;
+    return atrValue ? (v / atrValue) * 100 : 0;
+  });
 
   const dx: number[] = [];
   for (let i = 0; i < plusDI.length; i++) {
-    const sum = plusDI[i] + minusDI[i];
-    dx.push(sum === 0 ? 0 : (Math.abs(plusDI[i] - minusDI[i]) / sum) * 100);
+    const plus = plusDI[i] ?? 0;
+    const minus = minusDI[i] ?? 0;
+    const sum = plus + minus;
+    dx.push(sum === 0 ? 0 : (Math.abs(plus - minus) / sum) * 100);
   }
 
   const adx = wilderSmooth(dx, period);
@@ -118,7 +126,7 @@ export function computeADX(candles: Candle[], period = 14): number {
 
 export function computeVolumeRatio(candles: Candle[]): number {
   if (candles.length < 2) return 1;
-  const current = candles[candles.length - 1].volume;
+  const current = candles[candles.length - 1]?.volume ?? 0;
   const avg = candles.reduce((sum, c) => sum + c.volume, 0) / candles.length;
   if (avg === 0) return 1;
   return current / avg;
