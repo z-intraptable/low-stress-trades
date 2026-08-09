@@ -267,16 +267,10 @@ function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="radar">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Bot Audit Radar</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Rankings and liquidation cluster map coming soon.
-                </p>
-              </CardContent>
-            </Card>
+            <BotRadar
+              rankings={rankings as BotRanking[]}
+              clusters={clusters as LiquidationCluster[]}
+            />
           </TabsContent>
         </Tabs>
       </main>
