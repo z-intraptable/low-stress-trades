@@ -47,7 +47,7 @@ const markProcessedSchema = z.object({ signalId: z.string().uuid() });
 
 export const markSignalProcessed = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => markProcessedSchema.parse(data))
+  .validator((data) => markProcessedSchema.parse(data))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase
       .from("qce_signals")
