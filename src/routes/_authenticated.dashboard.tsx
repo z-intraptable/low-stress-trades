@@ -6,14 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import type { QceSignal, Trade } from "@/lib/lst-types";
+import type { QceSignal, Trade, BotRanking, LiquidationCluster } from "@/lib/lst-types";
 import { getRecentSignals } from "@/lib/signals.functions";
 import { getTrades } from "@/lib/trades.functions";
+import { getBotRankings, getLiquidationClusters } from "@/lib/radar.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { PriceChart } from "@/components/lst/price-chart";
 import { TradeDialog } from "@/components/lst/trade-dialog";
 import { TradeJournal } from "@/components/lst/trade-journal";
+import { BotRadar } from "@/components/lst/bot-radar";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
