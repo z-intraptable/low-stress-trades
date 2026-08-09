@@ -82,7 +82,7 @@ const tradeDeleteSchema = z.object({ id: z.string().uuid() });
 
 export const deleteTrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => tradeDeleteSchema.parse(data))
+  .validator((data) => tradeDeleteSchema.parse(data))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase
       .from("trades")
