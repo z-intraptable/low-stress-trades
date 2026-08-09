@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { getUserSettings, upsertUserSettings } from "@/lib/settings.functions";
@@ -39,10 +38,7 @@ function SettingsPage() {
     daily_loss_limit_pct: 0.03,
     taker_fee_pct: 0.0005,
     slippage_estimate_pct: 0.0003,
-    auto_accept_min_score: 75,
-    max_open_positions: 3,
-    enable_sound_alerts: true,
-    enable_telegram_alerts: false,
+    max_trades_per_day: 20,
   });
 
   useEffect(() => {
@@ -169,61 +165,16 @@ function SettingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="auto_accept_min_score">Auto-accept min score</Label>
+                  <Label htmlFor="max_trades_per_day">Max trades per day</Label>
                   <Input
-                    id="auto_accept_min_score"
+                    id="max_trades_per_day"
                     type="number"
-                    value={form.auto_accept_min_score ?? ""}
+                    value={form.max_trades_per_day ?? ""}
                     onChange={(e) =>
                       setForm({
                         ...form,
-                        auto_accept_min_score: parseInt(e.target.value, 10),
+                        max_trades_per_day: parseInt(e.target.value, 10),
                       })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="max_open_positions">Max open positions</Label>
-                  <Input
-                    id="max_open_positions"
-                    type="number"
-                    value={form.max_open_positions ?? ""}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        max_open_positions: parseInt(e.target.value, 10),
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 rounded-md bg-muted p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Sound alerts</p>
-                    <p className="text-sm text-muted-foreground">
-                      Play a sound when a new signal arrives.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={form.enable_sound_alerts ?? false}
-                    onCheckedChange={(checked) =>
-                      setForm({ ...form, enable_sound_alerts: checked })
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Telegram alerts</p>
-                    <p className="text-sm text-muted-foreground">
-                      Forward high-confluence signals to Telegram (configure bot later).
-                    </p>
-                  </div>
-                  <Switch
-                    checked={form.enable_telegram_alerts ?? false}
-                    onCheckedChange={(checked) =>
-                      setForm({ ...form, enable_telegram_alerts: checked })
                     }
                   />
                 </div>
