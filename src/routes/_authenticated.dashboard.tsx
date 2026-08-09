@@ -130,13 +130,13 @@ function DashboardPage() {
                         </div>
                         <div>
                           <p className="text-muted-foreground">SL</p>
-                          <p className="font-medium text-lst-short">
+                          <p className="font-medium text-short">
                             {latest.sl.toFixed(4)}
                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">TP1</p>
-                          <p className="font-medium text-lst-long">
+                          <p className="font-medium text-long">
                             {latest.tp1.toFixed(4)}
                           </p>
                         </div>
@@ -145,6 +145,7 @@ function DashboardPage() {
                           <p className="font-medium">{latest.confluence_score}/100</p>
                         </div>
                       </div>
+
 
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="rounded-md bg-muted p-3">
