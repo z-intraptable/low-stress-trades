@@ -6,10 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import type { QceSignal } from "@/lib/lst-types";
+import type { QceSignal, Trade } from "@/lib/lst-types";
 import { getRecentSignals } from "@/lib/signals.functions";
+import { getTrades } from "@/lib/trades.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { PriceChart } from "@/components/lst/price-chart";
+import { TradeDialog } from "@/components/lst/trade-dialog";
+import { TradeJournal } from "@/components/lst/trade-journal";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -23,16 +27,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const fetchRecentSignals = useServerFn(getRecentSignals);
-  const { data: rawSignals = [] } = useQuery({
+  const fetchTrades = useServerFn(getTrades);
+
+  const { data: rawSignals = [], refetch: refetchSignals } = useQuery({
     queryKey: ["recentSignals"],
     queryFn: () => fetchRecentSignals(),
     refetchInterval: 5000,
   });
+
+  const { data: trades = [], refetch: refetchTrades } = useQuery({
+    queryKey: ["trades"],
+    queryFn: () => fetchTrades(),
+    refetchInterval: 5000,
+  });
+
   const signals = rawSignals.slice(0, 20);
-
-
-
-
   const [liveSignal, setLiveSignal] = useState<QceSignal | null>(null);
 
   useEffect(() => {
@@ -47,6 +56,7 @@ function DashboardPage() {
           toast.info(`New ${signal.signal} signal on ${signal.symbol}`, {
             description: `Confluence score: ${signal.confluence_score}`,
           });
+          refetchSignals();
         }
       )
       .subscribe();
@@ -54,7 +64,7 @@ function DashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetchSignals]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -120,7 +130,6 @@ function DashboardPage() {
                         >
                           {latest.signal}
                         </Badge>
-
                       </div>
 
                       <div className="grid grid-cols-4 gap-4 text-sm">
@@ -146,7 +155,6 @@ function DashboardPage() {
                         </div>
                       </div>
 
-
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="rounded-md bg-muted p-3">
                           <p className="text-muted-foreground">Regime</p>
@@ -170,6 +178,25 @@ function DashboardPage() {
                           <p className="font-medium">{latest.cost_adjusted_rr.toFixed(2)}</p>
                         </div>
                       )}
+
+                      {latest.suggested_position_size != null && (
+                        <div className="text-sm">
+                          <p className="text-muted-foreground">Suggested size</p>
+                          <p className="font-medium">{latest.suggested_position_size.toFixed(4)}</p>
+                        </div>
+                      )}
+
+                      <TradeDialog
+                        signal={latest}
+                        onTradeCreated={() => {
+                          refetchTrades();
+                          toast.success("Trade logged");
+                        }}
+                      >
+                        <Button className="w-full sm:w-auto">
+                          Execute {latest.signal}
+                        </Button>
+                      </TradeDialog>
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
@@ -212,24 +239,15 @@ function DashboardPage() {
                       <li className="text-sm text-muted-foreground">No recent signals.</li>
                     )}
                   </ul>
-
                 </CardContent>
               </Card>
             </div>
+
+            <PriceChart signal={latest} />
           </TabsContent>
 
           <TabsContent value="journal">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Performance Journal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Trade journal coming soon. You'll be able to log executions, outcomes,
-                  and review your edge here.
-                </p>
-              </CardContent>
-            </Card>
+            <TradeJournal trades={trades as Trade[]} onChange={() => refetchTrades()} />
           </TabsContent>
 
           <TabsContent value="radar">
