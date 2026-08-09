@@ -270,6 +270,7 @@ function DashboardPage() {
               </Card>
             </div>
 
+            <OrderbookHeatmap data={orderbookData ?? null} symbol={activeSymbol} />
             <PriceChart signal={latest ?? null} />
           </TabsContent>
 
