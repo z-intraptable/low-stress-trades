@@ -3,22 +3,26 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { QceSignal } from "./lst-types";
 
+const recentSignalsSchema = z.object({ limit: z.number().int().min(1).max(100).default(50) });
+
 export const getRecentSignals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<QceSignal[]> => {
-    const { data, error } = await context.supabase
+  .inputValidator((data) => recentSignalsSchema.parse(data))
+  .handler(async ({ context, data }): Promise<QceSignal[]> => {
+    const { data: rows, error } = await context.supabase
       .from("qce_signals")
       .select("*")
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(data.limit);
 
     if (error) {
       throw new Error(error.message);
     }
 
-    return (data ?? []) as QceSignal[];
+    return (rows ?? []) as QceSignal[];
   });
+
 
 export const getLatestSignal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
