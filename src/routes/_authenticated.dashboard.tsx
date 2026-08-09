@@ -1,0 +1,244 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import type { QceSignal } from "@/lib/lst-types";
+import { getRecentSignals } from "@/lib/signals.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+
+export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — LST" },
+      { name: "description", content: "Low Stress Trading terminal dashboard." },
+    ],
+  }),
+  component: DashboardPage,
+});
+
+function DashboardPage() {
+  const fetchRecentSignals = useServerFn(getRecentSignals);
+  const { data: signals = [] } = useQuery({
+    queryKey: ["recentSignals"],
+    queryFn: () => fetchRecentSignals({ limit: 20 }),
+    refetchInterval: 5000,
+  });
+
+  const [liveSignal, setLiveSignal] = useState<QceSignal | null>(null);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("qce_signals")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "qce_signals" },
+        (payload) => {
+          const signal = payload.new as QceSignal;
+          setLiveSignal(signal);
+          toast.info(`New ${signal.signal} signal on ${signal.symbol}`, {
+            description: `Confluence score: ${signal.confluence_score}`,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    window.location.href = "/auth/login";
+  }
+
+  const latest = liveSignal ?? signals[0];
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold tracking-tight">LST Terminal</h1>
+            <Badge variant="outline" className="text-xs">
+              Risk-first
+            </Badge>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/settings"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl p-6">
+        <Tabs defaultValue="signal" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="signal">Signal</TabsTrigger>
+            <TabsTrigger value="journal">Journal</TabsTrigger>
+            <TabsTrigger value="radar">Radar</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="signal" className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <Card className="border-border bg-card lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">Latest Signal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {latest ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-3xl font-bold">{latest.symbol}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {latest.timeframe} · {latest.type}
+                          </p>
+                        </div>
+                        <Badge
+                          className={
+                            latest.signal === "LONG"
+                              ? "bg-lst-long text-lst-long-foreground"
+                              : "bg-lst-short text-lst-short-foreground"
+                          }
+                        >
+                          {latest.signal}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Entry</p>
+                          <p className="font-medium">{latest.entry.toFixed(4)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">SL</p>
+                          <p className="font-medium text-lst-short">
+                            {latest.sl.toFixed(4)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">TP1</p>
+                          <p className="font-medium text-lst-long">
+                            {latest.tp1.toFixed(4)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Confluence</p>
+                          <p className="font-medium">{latest.confluence_score}/100</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="rounded-md bg-muted p-3">
+                          <p className="text-muted-foreground">Regime</p>
+                          <p className="font-medium">{latest.regime_state}</p>
+                        </div>
+                        <div className="rounded-md bg-muted p-3">
+                          <p className="text-muted-foreground">Liquidity</p>
+                          <p className="font-medium">{latest.liquidity_state}</p>
+                        </div>
+                        <div className="rounded-md bg-muted p-3">
+                          <p className="text-muted-foreground">Correlation</p>
+                          <p className="font-medium">
+                            {latest.correlation_flag ? "Flagged" : "OK"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {latest.cost_adjusted_rr != null && (
+                        <div className="text-sm">
+                          <p className="text-muted-foreground">Cost-adjusted R:R</p>
+                          <p className="font-medium">{latest.cost_adjusted_rr.toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No signals yet. Send a test webhook to /api/public/qce-webhook.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-lg">Signal Feed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {signals.slice(0, 8).map((signal) => (
+                      <li
+                        key={signal.id}
+                        className="flex items-center justify-between border-b border-border pb-2 last:border-0 last:pb-0"
+                      >
+                        <div>
+                          <p className="font-medium">{signal.symbol}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(signal.created_at).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            signal.signal === "LONG"
+                              ? "border-lst-long text-lst-long"
+                              : "border-lst-short text-lst-short"
+                          }
+                        >
+                          {signal.signal}
+                        </Badge>
+                      </li>
+                    ))}
+                    {signals.length === 0 && (
+                      <li className="text-sm text-muted-foreground">No recent signals.</li>
+                    )}
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="journal">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>Performance Journal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Trade journal coming soon. You'll be able to log executions, outcomes,
+                  and review your edge here.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="radar">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>Bot Audit Radar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Rankings and liquidation cluster map coming soon.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  );
+}
