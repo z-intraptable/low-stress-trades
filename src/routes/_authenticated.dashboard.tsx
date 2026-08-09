@@ -23,11 +23,13 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const fetchRecentSignals = useServerFn(getRecentSignals);
-  const { data: signals = [] } = useQuery({
+  const { data: rawSignals = [] } = useQuery({
     queryKey: ["recentSignals"],
     queryFn: () => fetchRecentSignals({ limit: 20 }),
     refetchInterval: 5000,
   });
+  const signals = rawSignals.slice(0, 20);
+
 
 
   const [liveSignal, setLiveSignal] = useState<QceSignal | null>(null);
