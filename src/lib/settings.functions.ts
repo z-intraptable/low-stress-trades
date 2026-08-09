@@ -30,7 +30,7 @@ export const getUserSettings = createServerFn({ method: "GET" })
 
 export const upsertUserSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => settingsSchema.parse(data))
+  .validator((data) => settingsSchema.parse(data))
   .handler(async ({ context, data }): Promise<UserSettings> => {
     const { data: existing } = await context.supabase
       .from("user_settings")
