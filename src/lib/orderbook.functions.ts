@@ -1,11 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const OrderbookEntry = z.object({
-  price: z.number(),
-  qty: z.number(),
-});
-
 const BinanceDepthResponse = z.object({
   lastUpdateId: z.number(),
   bids: z.array(z.tuple([z.string(), z.string()])),
@@ -17,6 +12,7 @@ export interface OrderbookLevel {
   qty: number;
   total: number;
   side: "bid" | "ask";
+  intensity: number;
 }
 
 export interface OrderbookHeatmap {
@@ -45,6 +41,7 @@ export const getOrderbookHeatmap = createServerFn({ method: "GET" })
         qty: parseFloat(q),
         total: parseFloat(p) * parseFloat(q),
         side: "bid" as const,
+        intensity: 0,
       }))
       .sort((a, b) => b.price - a.price);
 
@@ -54,6 +51,7 @@ export const getOrderbookHeatmap = createServerFn({ method: "GET" })
         qty: parseFloat(q),
         total: parseFloat(p) * parseFloat(q),
         side: "ask" as const,
+        intensity: 0,
       }))
       .sort((a, b) => a.price - b.price);
 
@@ -68,12 +66,14 @@ export const getOrderbookHeatmap = createServerFn({ method: "GET" })
       1
     );
 
+    const levels = [...bids.slice(-20), ...asks.slice(0, 20)].map((level) => ({
+      ...level,
+      intensity: level.total / maxTotal,
+    }));
+
     return {
       midPrice,
       spreadPct,
-      levels: [...bids.slice(-20), ...asks.slice(0, 20)].map((level) => ({
-        ...level,
-        intensity: level.total / maxTotal,
-      })) as unknown as OrderbookLevel[],
+      levels,
     };
   });
