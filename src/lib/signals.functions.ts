@@ -7,8 +7,9 @@ const recentSignalsSchema = z.object({ limit: z.number().int().min(1).max(100).d
 
 export const getRecentSignals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => recentSignalsSchema.parse(data))
+  .validator((data) => recentSignalsSchema.parse(data))
   .handler(async ({ context, data }): Promise<QceSignal[]> => {
+
     const { data: rows, error } = await context.supabase
       .from("qce_signals")
       .select("*")
