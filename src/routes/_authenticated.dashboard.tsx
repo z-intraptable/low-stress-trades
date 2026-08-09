@@ -30,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const fetchRecentSignals = useServerFn(getRecentSignals);
   const fetchTrades = useServerFn(getTrades);
+  const fetchRankings = useServerFn(getBotRankings);
+  const fetchClusters = useServerFn(getLiquidationClusters);
 
   const { data: rawSignals = [], refetch: refetchSignals } = useQuery({
     queryKey: ["recentSignals"],
@@ -41,6 +43,18 @@ function DashboardPage() {
     queryKey: ["trades"],
     queryFn: () => fetchTrades(),
     refetchInterval: 5000,
+  });
+
+  const { data: rankings = [] } = useQuery({
+    queryKey: ["botRankings"],
+    queryFn: () => fetchRankings(),
+    refetchInterval: 30000,
+  });
+
+  const { data: clusters = [] } = useQuery({
+    queryKey: ["liquidationClusters"],
+    queryFn: () => fetchClusters(),
+    refetchInterval: 30000,
   });
 
   const signals = rawSignals.slice(0, 20);
