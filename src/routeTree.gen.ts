@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as ApiPublicQceWebhookRouteImport } from './routes/api/public/qce-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicQceWebhookRoute = ApiPublicQceWebhookRouteImport.update({
@@ -25,27 +31,31 @@ const ApiPublicQceWebhookRoute = ApiPublicQceWebhookRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/login': typeof AuthLoginRoute
   '/api/public/qce-webhook': typeof ApiPublicQceWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/login': typeof AuthLoginRoute
   '/api/public/qce-webhook': typeof ApiPublicQceWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth/login': typeof AuthLoginRoute
   '/api/public/qce-webhook': typeof ApiPublicQceWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/qce-webhook'
+  fullPaths: '/' | '/auth/login' | '/api/public/qce-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/qce-webhook'
-  id: '__root__' | '/' | '/api/public/qce-webhook'
+  to: '/' | '/auth/login' | '/api/public/qce-webhook'
+  id: '__root__' | '/' | '/auth/login' | '/api/public/qce-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthLoginRoute: typeof AuthLoginRoute
   ApiPublicQceWebhookRoute: typeof ApiPublicQceWebhookRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/qce-webhook': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthLoginRoute: AuthLoginRoute,
   ApiPublicQceWebhookRoute: ApiPublicQceWebhookRoute,
 }
 export const routeTree = rootRouteImport
