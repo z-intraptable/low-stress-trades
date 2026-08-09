@@ -114,12 +114,13 @@ function DashboardPage() {
                         <Badge
                           className={
                             latest.signal === "LONG"
-                              ? "bg-lst-long text-lst-long-foreground"
-                              : "bg-lst-short text-lst-short-foreground"
+                              ? "bg-long text-long-foreground"
+                              : "bg-short text-short-foreground"
                           }
                         >
                           {latest.signal}
                         </Badge>
+
                       </div>
 
                       <div className="grid grid-cols-4 gap-4 text-sm">
