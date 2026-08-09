@@ -243,7 +243,7 @@ function DashboardPage() {
               </Card>
             </div>
 
-            <PriceChart signal={latest} />
+            <PriceChart signal={latest ?? null} />
           </TabsContent>
 
           <TabsContent value="journal">
