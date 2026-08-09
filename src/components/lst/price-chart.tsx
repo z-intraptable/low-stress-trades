@@ -1,13 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  createChart,
-  CandlestickSeries,
-  LineSeries,
-  type IChartApi,
-  type ISeriesApi,
-  type CandlestickData,
-  type LineStyleOptions,
-} from "lightweight-charts";
 import type { QceSignal } from "@/lib/lst-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,7 +6,9 @@ interface PriceChartProps {
   signal: QceSignal | null;
 }
 
-async function fetchKlines(symbol: string, timeframe: string): Promise<CandlestickData[]> {
+async function fetchKlines(symbol: string, timeframe: string): Promise<
+  { time: string; open: number; high: number; low: number; close: number }[]
+> {
   const pair = symbol.toUpperCase().replace(/\/$/, "").replace(/\/(?=\s*$)/, "");
   const cleanSymbol = pair.includes("USDT") ? pair : `${pair}USDT`;
   const interval = timeframe.toLowerCase();
@@ -35,48 +28,59 @@ async function fetchKlines(symbol: string, timeframe: string): Promise<Candlesti
 
 export function PriceChart({ signal }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-  const overlayRefs = useRef<ISeriesApi<"Line">[]>([]);
+  const chartRef = useRef<ReturnType<typeof import("lightweight-charts").createChart> | null>(null);
+  const seriesRef = useRef<ReturnType<
+    ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]
+  > | null>(null);
+  const overlayRefs = useRef<ReturnType<
+    ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]
+  >[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const chart = createChart(containerRef.current, {
-      layout: {
-        background: { color: "transparent" },
-        textColor: "rgba(255,255,255,0.6)",
-      },
-      grid: {
-        vertLines: { color: "rgba(255,255,255,0.05)" },
-        horzLines: { color: "rgba(255,255,255,0.05)" },
-      },
-      rightPriceScale: {
-        borderColor: "rgba(255,255,255,0.1)",
-      },
-      timeScale: {
-        borderColor: "rgba(255,255,255,0.1)",
-        timeVisible: true,
-      },
-      autoSize: true,
-    });
+    let cancelled = false;
 
-    const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#B8E986",
-      downColor: "#FF8A80",
-      borderUpColor: "#B8E986",
-      borderDownColor: "#FF8A80",
-      wickUpColor: "#B8E986",
-      wickDownColor: "#FF8A80",
-    });
+    import("lightweight-charts").then((lw) => {
+      if (cancelled || !containerRef.current) return;
 
-    chartRef.current = chart;
-    seriesRef.current = series;
+      const chart = lw.createChart(containerRef.current!, {
+        layout: {
+          background: { color: "transparent" },
+          textColor: "rgba(255,255,255,0.6)",
+        },
+        grid: {
+          vertLines: { color: "rgba(255,255,255,0.05)" },
+          horzLines: { color: "rgba(255,255,255,0.05)" },
+        },
+        rightPriceScale: {
+          borderColor: "rgba(255,255,255,0.1)",
+        },
+        timeScale: {
+          borderColor: "rgba(255,255,255,0.1)",
+          timeVisible: true,
+        },
+        autoSize: true,
+      });
+
+      const series = chart.addSeries(lw.CandlestickSeries, {
+        upColor: "#B8E986",
+        downColor: "#FF8A80",
+        borderUpColor: "#B8E986",
+        borderDownColor: "#FF8A80",
+        wickUpColor: "#B8E986",
+        wickDownColor: "#FF8A80",
+      });
+
+      chartRef.current = chart;
+      seriesRef.current = series;
+    });
 
     return () => {
-      chart.remove();
+      cancelled = true;
+      chartRef.current?.remove();
       chartRef.current = null;
       seriesRef.current = null;
       overlayRefs.current = [];
@@ -105,45 +109,47 @@ export function PriceChart({ signal }: PriceChartProps) {
 
         if (signal) {
           const last = data[data.length - 1];
-          if (last) {
-            const nextTime = (Number(last.time) + 60 * 5) as unknown as string;
-            const baseOptions: Partial<LineStyleOptions> = {
-              lineStyle: 2,
-              lineWidth: 2,
-            };
+          if (last && chartRef.current) {
+            import("lightweight-charts").then((lw) => {
+              if (!chartRef.current) return;
+              const nextTime = (Number(last.time) + 60 * 5) as unknown as string;
 
-            const entryLine = chartRef.current?.addSeries(LineSeries, {
-              ...baseOptions,
-              color: "#22D3EE",
-              title: "Entry",
-            });
-            entryLine?.setData([
-              { time: last.time, value: signal.entry },
-              { time: nextTime, value: signal.entry },
-            ]);
-            if (entryLine) overlayRefs.current.push(entryLine);
+              const entryLine = chartRef.current.addSeries(lw.LineSeries, {
+                lineStyle: 2,
+                lineWidth: 2,
+                color: "#22D3EE",
+                title: "Entry",
+              });
+              entryLine.setData([
+                { time: last.time, value: signal.entry },
+                { time: nextTime, value: signal.entry },
+              ]);
+              overlayRefs.current.push(entryLine);
 
-            const slLine = chartRef.current?.addSeries(LineSeries, {
-              ...baseOptions,
-              color: "#FF8A80",
-              title: "SL",
-            });
-            slLine?.setData([
-              { time: last.time, value: signal.sl },
-              { time: nextTime, value: signal.sl },
-            ]);
-            if (slLine) overlayRefs.current.push(slLine);
+              const slLine = chartRef.current.addSeries(lw.LineSeries, {
+                lineStyle: 2,
+                lineWidth: 2,
+                color: "#FF8A80",
+                title: "SL",
+              });
+              slLine.setData([
+                { time: last.time, value: signal.sl },
+                { time: nextTime, value: signal.sl },
+              ]);
+              overlayRefs.current.push(slLine);
 
-            const tpLine = chartRef.current?.addSeries(LineSeries, {
-              ...baseOptions,
-              color: "#B8E986",
-              title: "TP1",
+              const tpLine = chartRef.current.addSeries(lw.LineSeries, {
+                lineStyle: 2,
+                lineWidth: 2,
+                color: "#B8E986",
+                title: "TP1",
+              });
+              tpLine.setData([
+                { time: last.time, value: signal.tp1 },
+                { time: nextTime, value: signal.tp1 },
+              ]);
+              overlayRefs.current.push(tpLine);
             });
-            tpLine?.setData([
-              { time: last.time, value: signal.tp1 },
-              { time: nextTime, value: signal.tp1 },
-            ]);
-            if (tpLine) overlayRefs.current.push(tpLine);
           }
         }
       })
