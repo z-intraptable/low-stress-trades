@@ -59,6 +59,15 @@ function DashboardPage() {
     refetchInterval: 30000,
   });
 
+  const fetchOrderbook = useServerFn(getOrderbookHeatmap);
+  const activeSymbol = latest?.symbol ?? "";
+  const { data: orderbookData } = useQuery({
+    queryKey: ["orderbook", activeSymbol],
+    queryFn: () => fetchOrderbook({ symbol: activeSymbol }),
+    enabled: activeSymbol.length > 0,
+    refetchInterval: 5000,
+  });
+
   const signals = rawSignals.slice(0, 20);
   const [liveSignal, setLiveSignal] = useState<QceSignal | null>(null);
 
