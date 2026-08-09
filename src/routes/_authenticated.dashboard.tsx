@@ -200,8 +200,8 @@ function DashboardPage() {
                           variant="outline"
                           className={
                             signal.signal === "LONG"
-                              ? "border-lst-long text-lst-long"
-                              : "border-lst-short text-lst-short"
+                              ? "border-long text-long"
+                              : "border-short text-short"
                           }
                         >
                           {signal.signal}
@@ -212,6 +212,7 @@ function DashboardPage() {
                       <li className="text-sm text-muted-foreground">No recent signals.</li>
                     )}
                   </ul>
+
                 </CardContent>
               </Card>
             </div>
