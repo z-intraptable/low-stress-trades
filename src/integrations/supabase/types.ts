@@ -83,6 +83,45 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_connections: {
+        Row: {
+          api_key: string
+          api_secret: string
+          created_at: string
+          exchange: string
+          id: string
+          last_verified_at: string | null
+          live_trading_enabled: boolean
+          testnet: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          api_secret: string
+          created_at?: string
+          exchange: string
+          id?: string
+          last_verified_at?: string | null
+          live_trading_enabled?: boolean
+          testnet?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          api_secret?: string
+          created_at?: string
+          exchange?: string
+          id?: string
+          last_verified_at?: string | null
+          live_trading_enabled?: boolean
+          testnet?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       liquidation_clusters: {
         Row: {
           id: string
@@ -194,6 +233,47 @@ export type Database = {
         }
         Relationships: []
       }
+      signal_backtests: {
+        Row: {
+          bars_to_resolution: number
+          created_at: string
+          id: string
+          outcome: string
+          r_multiple: number
+          signal_id: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          bars_to_resolution: number
+          created_at?: string
+          id?: string
+          outcome: string
+          r_multiple: number
+          signal_id: string
+          summary: string
+          user_id: string
+        }
+        Update: {
+          bars_to_resolution?: number
+          created_at?: string
+          id?: string
+          outcome?: string
+          r_multiple?: number
+          signal_id?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_backtests_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "qce_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           closed_at: string | null
@@ -254,6 +334,8 @@ export type Database = {
           daily_loss_limit_pct: number | null
           id: string
           max_trades_per_day: number | null
+          pin_hash: string | null
+          pin_salt: string | null
           risk_pct_per_trade: number | null
           slippage_estimate_pct: number | null
           taker_fee_pct: number | null
@@ -266,6 +348,8 @@ export type Database = {
           daily_loss_limit_pct?: number | null
           id?: string
           max_trades_per_day?: number | null
+          pin_hash?: string | null
+          pin_salt?: string | null
           risk_pct_per_trade?: number | null
           slippage_estimate_pct?: number | null
           taker_fee_pct?: number | null
@@ -278,6 +362,8 @@ export type Database = {
           daily_loss_limit_pct?: number | null
           id?: string
           max_trades_per_day?: number | null
+          pin_hash?: string | null
+          pin_salt?: string | null
           risk_pct_per_trade?: number | null
           slippage_estimate_pct?: number | null
           taker_fee_pct?: number | null
