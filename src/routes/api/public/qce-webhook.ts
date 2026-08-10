@@ -1,11 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import {
-  computeATR,
-  computeADX,
-  computeVolumeRatio,
-  fetchBinanceKlines,
-} from "@/lib/market-data";
+import { computeATR, computeADX, computeVolumeRatio, fetchBinanceKlines } from "@/lib/market-data";
 import {
   computeAtrBasedLevels,
   computeConfluenceScore,
@@ -15,6 +10,12 @@ import {
   computePositionSize,
 } from "@/lib/trading-math";
 import type { SignalSide } from "@/lib/lst-types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+// Type-only, so it is erased at build time and never pulls the service-role
+// client into the browser bundle.
+type SupabaseAdminClient = SupabaseClient<Database>;
 
 const payloadSchema = z.object({
   symbol: z.string().min(1),
@@ -26,7 +27,7 @@ const payloadSchema = z.object({
   secret: z.string().min(1),
 });
 
-async function findSingleTenantUserId(supabaseAdmin: any): Promise<string | null> {
+async function findSingleTenantUserId(supabaseAdmin: SupabaseAdminClient): Promise<string | null> {
   const { data, error } = await supabaseAdmin
     .from("user_settings")
     .select("user_id")
@@ -38,10 +39,10 @@ async function findSingleTenantUserId(supabaseAdmin: any): Promise<string | null
 }
 
 async function hasRecentSameDirectionSignal(
-  supabaseAdmin: any,
+  supabaseAdmin: SupabaseAdminClient,
   userId: string,
   symbol: string,
-  signal: SignalSide
+  signal: SignalSide,
 ): Promise<boolean> {
   const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
   const { data, error } = await supabaseAdmin
@@ -58,9 +59,9 @@ async function hasRecentSameDirectionSignal(
 }
 
 async function checkCorrelationFlag(
-  supabaseAdmin: any,
+  supabaseAdmin: SupabaseAdminClient,
   userId: string,
-  signal: SignalSide
+  signal: SignalSide,
 ): Promise<boolean> {
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   const { count, error } = await supabaseAdmin
@@ -80,47 +81,47 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
       POST: async ({ request }) => {
         const secret = process.env["QCE_WEBHOOK_SECRET"];
         if (!secret) {
-          return new Response(
-            JSON.stringify({ error: "Webhook secret not configured" }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
-          );
+          return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         let body: unknown;
         try {
           body = await request.json();
         } catch {
-          return new Response(
-            JSON.stringify({ error: "Invalid JSON body" }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
-          );
+          return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         const parsed = payloadSchema.safeParse(body);
         if (!parsed.success) {
           return new Response(
             JSON.stringify({ error: "Invalid payload", details: parsed.error.format() }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            { status: 400, headers: { "Content-Type": "application/json" } },
           );
         }
 
         const payload = parsed.data;
 
         if (payload.secret !== secret) {
-          return new Response(
-            JSON.stringify({ error: "Unauthorized" }),
-            { status: 401, headers: { "Content-Type": "application/json" } }
-          );
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const userId = await findSingleTenantUserId(supabaseAdmin);
         if (!userId) {
-          return new Response(
-            JSON.stringify({ error: "No user configured for this deployment" }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
-          );
+          return new Response(JSON.stringify({ error: "No user configured for this deployment" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         let candles;
@@ -132,7 +133,7 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
               error: "Failed to fetch market data",
               message: err instanceof Error ? err.message : String(err),
             }),
-            { status: 502, headers: { "Content-Type": "application/json" } }
+            { status: 502, headers: { "Content-Type": "application/json" } },
           );
         }
 
@@ -148,21 +149,17 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
           supabaseAdmin,
           userId,
           payload.symbol,
-          payload.signal
+          payload.signal,
         );
 
         const confluenceScore = computeConfluenceScore(
           payload.score,
           adx,
           orderbookAgreement,
-          multiTimeframeBoost
+          multiTimeframeBoost,
         );
 
-        const correlationFlag = await checkCorrelationFlag(
-          supabaseAdmin,
-          userId,
-          payload.signal
-        );
+        const correlationFlag = await checkCorrelationFlag(supabaseAdmin, userId, payload.signal);
 
         const { data: settings } = await supabaseAdmin
           .from("user_settings")
@@ -184,14 +181,14 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
             settings.account_balance,
             settings.risk_pct_per_trade,
             levels.entry,
-            levels.sl
+            levels.sl,
           );
           costAdjustedRR = computeCostAdjustedRR(
             levels.entry,
             levels.sl,
             levels.tp1,
             settings.taker_fee_pct,
-            settings.slippage_estimate_pct
+            settings.slippage_estimate_pct,
           );
         }
 
@@ -221,10 +218,10 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
         });
 
         if (insertError) {
-          return new Response(
-            JSON.stringify({ error: insertError.message }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
-          );
+          return new Response(JSON.stringify({ error: insertError.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         return new Response(
@@ -235,7 +232,7 @@ export const Route = createFileRoute("/api/public/qce-webhook")({
             liquidity_state: liquidityState,
             correlation_flag: correlationFlag,
           }),
-          { status: 200, headers: { "Content-Type": "application/json" } }
+          { status: 200, headers: { "Content-Type": "application/json" } },
         );
       },
     },

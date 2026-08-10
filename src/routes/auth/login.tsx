@@ -18,10 +18,18 @@ export const Route = createFileRoute("/auth/login")({
   component: LoginPage,
 });
 
+// TEMPORARY development convenience: the sign-in form starts pre-filled so the
+// app can be walked through without typing credentials every time.
+// SECURITY: these are real credentials committed to the repository. Clear both
+// constants (and rotate the password) before this deployment is shared with
+// anyone or treated as production.
+const DEV_PREFILL_EMAIL = "intraptable0@gmail.com";
+const DEV_PREFILL_PASSWORD = "lisandro1";
+
 function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEV_PREFILL_EMAIL);
+  const [password, setPassword] = useState(DEV_PREFILL_PASSWORD);
   const [loading, setLoading] = useState(false);
 
   async function handleEmailSignIn(e: React.FormEvent) {
@@ -39,11 +47,17 @@ function LoginPage() {
   async function handleGoogleSignIn() {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
     setLoading(false);
     if (result.error) {
       toast.error(result.error.message);
+      return;
+    }
+    // Outside an iframe the broker redirects the whole page, so nothing after
+    // this runs. In the iframe flow the session is already set, so go on.
+    if (!result.redirected) {
+      router.navigate({ to: "/dashboard" });
     }
   }
 

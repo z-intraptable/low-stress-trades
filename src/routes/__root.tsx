@@ -13,7 +13,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -80,10 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "LST — Low Stress Trading" },
-      { name: "description", content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first." },
+      {
+        name: "description",
+        content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first.",
+      },
       { name: "author", content: "LST" },
       { property: "og:title", content: "LST — Low Stress Trading" },
-      { property: "og:description", content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first." },
+      {
+        property: "og:description",
+        content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@lowstresstrading" },
@@ -101,7 +106,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
@@ -128,4 +132,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

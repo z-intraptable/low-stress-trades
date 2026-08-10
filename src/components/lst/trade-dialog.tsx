@@ -26,7 +26,7 @@ export function TradeDialog({ signal, onTradeCreated, children }: TradeDialogPro
   const createTradeFn = useServerFn(createTrade);
   const [open, setOpen] = useState(false);
   const [size, setSize] = useState(
-    signal.suggested_position_size ? signal.suggested_position_size.toFixed(4) : ""
+    signal.suggested_position_size ? signal.suggested_position_size.toFixed(4) : "",
   );
   const [entry, setEntry] = useState(signal.entry.toFixed(4));
   const [slippage, setSlippage] = useState("0.02");

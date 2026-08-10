@@ -24,9 +24,10 @@ export function TradeJournal({ trades, onChange }: TradeJournalProps) {
   async function handleClose(trade: Trade) {
     if (!exitPrice) return;
     const exit = Number(exitPrice);
-    const pnl = trade.side === "LONG"
-      ? (exit - trade.entry_price) * trade.size
-      : (trade.entry_price - exit) * trade.size;
+    const pnl =
+      trade.side === "LONG"
+        ? (exit - trade.entry_price) * trade.size
+        : (trade.entry_price - exit) * trade.size;
     try {
       await updateTradeFn({
         data: {

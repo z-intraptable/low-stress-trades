@@ -11,7 +11,7 @@ export interface Candle {
 export async function fetchBinanceKlines(
   symbol: string,
   interval: string,
-  limit = 50
+  limit = 50,
 ): Promise<Candle[]> {
   const pair = `${symbol.toUpperCase()}USDT`;
   const url = `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`;
@@ -31,7 +31,7 @@ export async function fetchBinanceKlines(
     number,
     string,
     string,
-    string
+    string,
   ][];
 
   return data.map((k) => ({
@@ -71,7 +71,7 @@ export function computeATR(candles: Candle[], period = 14): number {
     const tr = Math.max(
       curr.high - curr.low,
       Math.abs(curr.high - prev.close),
-      Math.abs(curr.low - prev.close)
+      Math.abs(curr.low - prev.close),
     );
     trs.push(tr);
   }
@@ -97,8 +97,8 @@ export function computeADX(candles: Candle[], period = 14): number {
       Math.max(
         curr.high - curr.low,
         Math.abs(curr.high - prev.close),
-        Math.abs(curr.low - prev.close)
-      )
+        Math.abs(curr.low - prev.close),
+      ),
     );
   }
 

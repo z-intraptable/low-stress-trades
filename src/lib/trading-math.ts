@@ -1,10 +1,6 @@
 import type { SignalSide, UserSettings } from "./lst-types";
 
-export function computeAtrBasedLevels(
-  price: number,
-  atr: number,
-  side: SignalSide
-) {
+export function computeAtrBasedLevels(price: number, atr: number, side: SignalSide) {
   const multiplier = side === "LONG" ? 1 : -1;
   return {
     entry: price,
@@ -19,7 +15,7 @@ export function computeConfluenceScore(
   rawScore: number,
   adx: number,
   orderbookAgreement: "AGREE" | "CONFLICT" | "NEUTRAL",
-  multiTimeframeBoost: boolean
+  multiTimeframeBoost: boolean,
 ) {
   let score = rawScore;
   if (adx < 20) score -= 15;
@@ -43,7 +39,7 @@ export function computeCostAdjustedRR(
   sl: number,
   tp1: number,
   takerFeePct: number,
-  slippageEstimatePct: number
+  slippageEstimatePct: number,
 ): number {
   const roundTripCost = 2 * (takerFeePct + slippageEstimatePct);
   const tpDistance = Math.abs(tp1 - entry);
@@ -56,7 +52,7 @@ export function computePositionSize(
   accountBalance: number,
   riskPct: number,
   entry: number,
-  sl: number
+  sl: number,
 ): number {
   const riskAmount = accountBalance * riskPct;
   const slDistance = Math.abs(entry - sl);
@@ -67,7 +63,7 @@ export function computePositionSize(
 export function canSuggestNewEntry(
   dailyRealizedPnl: number,
   accountBalance: number,
-  dailyLossLimitPct: number
+  dailyLossLimitPct: number,
 ): boolean {
   const limit = -accountBalance * dailyLossLimitPct;
   return dailyRealizedPnl > limit;

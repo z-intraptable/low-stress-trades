@@ -41,9 +41,7 @@ export function OrderbookHeatmap({ data, symbol }: OrderbookHeatmapProps) {
         <div className="space-y-1">
           {levels.map((level) => {
             const isAsk = level.side === "ask";
-            const color = isAsk
-              ? "oklch(0.68 0.19 30 / 0.35)"
-              : "oklch(0.84 0.22 120 / 0.35)";
+            const color = isAsk ? "oklch(0.68 0.19 30 / 0.35)" : "oklch(0.84 0.22 120 / 0.35)";
             return (
               <div
                 key={`${level.side}-${level.price}`}
@@ -58,12 +56,8 @@ export function OrderbookHeatmap({ data, symbol }: OrderbookHeatmapProps) {
                     left: isAsk ? "auto" : 0,
                   }}
                 />
-                <span className="relative z-10 font-mono">
-                  {level.price.toFixed(2)}
-                </span>
-                <span className="relative z-10 text-muted-foreground">
-                  {level.qty.toFixed(4)}
-                </span>
+                <span className="relative z-10 font-mono">{level.price.toFixed(2)}</span>
+                <span className="relative z-10 text-muted-foreground">{level.qty.toFixed(4)}</span>
               </div>
             );
           })}

@@ -9,7 +9,6 @@ export const getRecentSignals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((data) => recentSignalsSchema.parse(data))
   .handler(async ({ context, data }): Promise<QceSignal[]> => {
-
     const { data: rows, error } = await context.supabase
       .from("qce_signals")
       .select("*")
@@ -23,7 +22,6 @@ export const getRecentSignals = createServerFn({ method: "GET" })
 
     return (rows ?? []) as QceSignal[];
   });
-
 
 export const getLatestSignal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
