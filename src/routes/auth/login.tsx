@@ -39,11 +39,17 @@ function LoginPage() {
   async function handleGoogleSignIn() {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth/callback`,
     });
     setLoading(false);
     if (result.error) {
       toast.error(result.error.message);
+      return;
+    }
+    // Outside an iframe the broker redirects the whole page, so nothing after
+    // this runs. In the iframe flow the session is already set, so go on.
+    if (!result.redirected) {
+      router.navigate({ to: "/dashboard" });
     }
   }
 
