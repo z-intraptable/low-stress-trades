@@ -10,7 +10,10 @@ import type { QceSignal, Trade, BotRanking, LiquidationCluster } from "@/lib/lst
 import { getRecentSignals } from "@/lib/signals.functions";
 import { getTrades } from "@/lib/trades.functions";
 import { getBotRankings, getLiquidationClusters } from "@/lib/radar.functions";
-import { getOrderbookHeatmap, type OrderbookHeatmap as OrderbookHeatmapData } from "@/lib/orderbook.functions";
+import {
+  getOrderbookHeatmap,
+  type OrderbookHeatmap as OrderbookHeatmapData,
+} from "@/lib/orderbook.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { PriceChart } from "@/components/lst/price-chart";
@@ -75,7 +78,7 @@ function DashboardPage() {
             description: `Confluence score: ${signal.confluence_score}`,
           });
           refetchSignals();
-        }
+        },
       )
       .subscribe();
 
@@ -111,10 +114,7 @@ function DashboardPage() {
             </Badge>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              to="/settings"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
+            <Link to="/settings" className="text-sm text-muted-foreground hover:text-foreground">
               Settings
             </Link>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -166,15 +166,11 @@ function DashboardPage() {
                         </div>
                         <div>
                           <p className="text-muted-foreground">SL</p>
-                          <p className="font-medium text-short">
-                            {latest.sl.toFixed(4)}
-                          </p>
+                          <p className="font-medium text-short">{latest.sl.toFixed(4)}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">TP1</p>
-                          <p className="font-medium text-long">
-                            {latest.tp1.toFixed(4)}
-                          </p>
+                          <p className="font-medium text-long">{latest.tp1.toFixed(4)}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Confluence</p>
@@ -220,9 +216,7 @@ function DashboardPage() {
                           toast.success("Trade logged");
                         }}
                       >
-                        <Button className="w-full sm:w-auto">
-                          Execute {latest.signal}
-                        </Button>
+                        <Button className="w-full sm:w-auto">Execute {latest.signal}</Button>
                       </TradeDialog>
                     </div>
                   ) : (

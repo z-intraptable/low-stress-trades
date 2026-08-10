@@ -60,11 +60,7 @@ export const getOrderbookHeatmap = createServerFn({ method: "GET" })
     const midPrice = bestBid && bestAsk ? (bestBid + bestAsk) / 2 : 0;
     const spreadPct = midPrice ? ((bestAsk - bestBid) / midPrice) * 100 : 0;
 
-    const maxTotal = Math.max(
-      ...bids.map((b) => b.total),
-      ...asks.map((a) => a.total),
-      1
-    );
+    const maxTotal = Math.max(...bids.map((b) => b.total), ...asks.map((a) => a.total), 1);
 
     const levels = [...bids.slice(-20), ...asks.slice(0, 20)].map((level) => ({
       ...level,

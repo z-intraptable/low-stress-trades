@@ -10,9 +10,7 @@ interface BotRadarProps {
 }
 
 export function BotRadar({ rankings, clusters }: BotRadarProps) {
-  const sortedClusters = [...clusters]
-    .sort((a, b) => b.volume - a.volume)
-    .slice(0, 12);
+  const sortedClusters = [...clusters].sort((a, b) => b.volume - a.volume).slice(0, 12);
 
   const maxVolume = sortedClusters[0]?.volume ?? 1;
 
@@ -25,7 +23,8 @@ export function BotRadar({ rankings, clusters }: BotRadarProps) {
         <CardContent>
           {rankings.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No bot rankings yet. Rankings are computed from your logged trades and signal outcomes.
+              No bot rankings yet. Rankings are computed from your logged trades and signal
+              outcomes.
             </p>
           ) : (
             <div className="space-y-4">
@@ -41,9 +40,7 @@ export function BotRadar({ rankings, clusters }: BotRadarProps) {
                         {bot.timeframe}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {bot.strategy_summary}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{bot.strategy_summary}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-sm sm:text-right">
                     <div>
@@ -72,9 +69,7 @@ export function BotRadar({ rankings, clusters }: BotRadarProps) {
         </CardHeader>
         <CardContent>
           {sortedClusters.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No liquidation clusters loaded yet.
-            </p>
+            <p className="text-sm text-muted-foreground">No liquidation clusters loaded yet.</p>
           ) : (
             <div className="space-y-3">
               {sortedClusters.map((cluster) => (
@@ -86,14 +81,9 @@ export function BotRadar({ rankings, clusters }: BotRadarProps) {
                         {cluster.size_bucket}
                       </Badge>
                     </div>
-                    <span className="text-muted-foreground">
-                      {cluster.price_level.toFixed(2)}
-                    </span>
+                    <span className="text-muted-foreground">{cluster.price_level.toFixed(2)}</span>
                   </div>
-                  <Progress
-                    value={(cluster.volume / maxVolume) * 100}
-                    className="h-2"
-                  />
+                  <Progress value={(cluster.volume / maxVolume) * 100} className="h-2" />
                 </div>
               ))}
             </div>

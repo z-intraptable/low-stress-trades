@@ -6,14 +6,18 @@ interface PriceChartProps {
   signal: QceSignal | null;
 }
 
-async function fetchKlines(symbol: string, timeframe: string): Promise<
-  { time: string; open: number; high: number; low: number; close: number }[]
-> {
-  const pair = symbol.toUpperCase().replace(/\/$/, "").replace(/\/(?=\s*$)/, "");
+async function fetchKlines(
+  symbol: string,
+  timeframe: string,
+): Promise<{ time: string; open: number; high: number; low: number; close: number }[]> {
+  const pair = symbol
+    .toUpperCase()
+    .replace(/\/$/, "")
+    .replace(/\/(?=\s*$)/, "");
   const cleanSymbol = pair.includes("USDT") ? pair : `${pair}USDT`;
   const interval = timeframe.toLowerCase();
   const res = await fetch(
-    `https://api.binance.com/api/v3/klines?symbol=${cleanSymbol}&interval=${interval}&limit=150`
+    `https://api.binance.com/api/v3/klines?symbol=${cleanSymbol}&interval=${interval}&limit=150`,
   );
   if (!res.ok) throw new Error("Failed to fetch market data");
   const data = (await res.json()) as [number, string, string, string, string, string][];
@@ -32,9 +36,9 @@ export function PriceChart({ signal }: PriceChartProps) {
   const seriesRef = useRef<ReturnType<
     ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]
   > | null>(null);
-  const overlayRefs = useRef<ReturnType<
-    ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]
-  >[]>([]);
+  const overlayRefs = useRef<
+    ReturnType<ReturnType<typeof import("lightweight-charts").createChart>["addSeries"]>[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 

@@ -71,10 +71,7 @@ function SettingsPage() {
             <h1 className="text-xl font-bold tracking-tight">LST Terminal</h1>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              to="/dashboard"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
               Dashboard
             </Link>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -89,8 +86,8 @@ function SettingsPage() {
           <CardHeader>
             <CardTitle>Trading Settings</CardTitle>
             <CardDescription>
-              These values are used to compute position sizing, cost-adjusted R:R, and
-              daily risk limits.
+              These values are used to compute position sizing, cost-adjusted R:R, and daily risk
+              limits.
             </CardDescription>
           </CardHeader>
           <CardContent>

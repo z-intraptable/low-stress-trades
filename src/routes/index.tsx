@@ -5,7 +5,10 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "LST — Low Stress Trading" },
-      { name: "description", content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first." },
+      {
+        name: "description",
+        content: "Disciplined crypto scalping terminal. Risk-first, not prediction-first.",
+      },
     ],
   }),
   beforeLoad: async () => {
